@@ -1,0 +1,30 @@
+{
+  "name": "su-downloader2",
+  "version": "1.0.0",
+  "description": "",
+  "main": "dist/index.js",
+  "scripts": {
+    "test": "jest",
+    "build": "babel src --out-dir dist --source-maps true",
+    "start": "node dist/index.js",
+    "docs": "jsdoc2md ./src/** --global-index-format grouped > README.md"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "bytes": "^3.0.0",
+    "request": "^2.85.0",
+    "request-promise": "^4.2.2",
+    "rxjs": "^5.5.7"
+  },
+  "devDependencies": {
+    "babel-cli": "^6.26.0",
+    "babel-core": "^6.26.0",
+    "babel-jest": "^22.4.3",
+    "babel-preset-env": "^1.6.1",
+    "eslint-config-airbnb-base": "^12.1.0",
+    "eslint-plugin-import": "^2.9.0",
+    "jest": "^22.4.3"
+  }
+}
