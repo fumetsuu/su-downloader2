@@ -6,12 +6,13 @@ import { sudPath } from './Utils';
 const testPath = './downloads/test.test'
 const testPathsud = sudPath(testPath)
 
-getDownloadLink('https://www.masterani.me/anime/watch/2758-darling-in-the-franxx/11')
-	.then(link => {
-		initiateDownload({
-			url: link,
-			path: './downloads/test.test'
-		})
-	})
-
+// getDownloadLink('https://www.masterani.me/anime/watch/2758-darling-in-the-franxx/11')
+// 	.then(link => {
+// 		initiateDownload({
+// 			url: link,
+// 			path: './downloads/test.test'
+// 		})
+// })
+	
 startDownload(testPathsud)
+	

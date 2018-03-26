@@ -1,6 +1,9 @@
 const fs = require('fs')
 import { Request } from './Request'
-import { filter, pluck, take, map, withLatestFrom } from 'rxjs/operators'
+import { bindNodeCallback } from 'rxjs/observable/bindNodeCallback'
+import { Observable } from 'rxjs/Observable'
+import 'rxjs/add/observable/from'
+import { filter, pluck, take, map, withLatestFrom, concatMap } from 'rxjs/operators'
 
 /**
  * public util method to get .sud file
@@ -16,6 +19,29 @@ const bufferSize = 1024 * 4
 export function getResponse(params) {
 	const res$ = Request(params.url)
 	return filterPluck(res$, 'response', 'res').pipe(take(1))
+}
+
+function calculateRange(threads, positions) {
+	var start = positions[0]
+	var end = threads[0][1]
+	return `bytes=${start}-${end}`
+}
+
+function genRequestParams(meta) {
+	let { url, filesize, threads, positions } = meta
+	var headers = { range: calculateRange(threads, positions) }
+	return {
+		url,
+		headers
+	}
+}
+
+export function getDataFromRequest(readMeta$) {
+	return readMeta$.pipe(concatMap(readMeta => {
+		var meta = JSON.parse(readMeta[1].toString())
+		var params = genRequestParams(meta)
+		return Request(params)
+	}))
 }
 
 //gets remote file size by reading the response object
@@ -35,7 +61,7 @@ export function createMetaInitial(fd$, filesize$, options) {
 				path: options.path,
 				sudPath: sudPath(options.path),
 				filesize: filesize,
-				threads: [0, filesize],
+				threads: [[0, filesize]],
 				positions: [0]
 			}
 			writeMetaInitial(fd, meta)
@@ -54,16 +80,11 @@ function writeMetaInitial(fd, meta) {
 }
 
 export function readMeta(fd$, sudFile) {
-	fd$.subscribe(fd => {
+	var fsRead = bindNodeCallback(fs.read)
+	return fd$.pipe(concatMap(fd => {
 		const actualSize = getLocalFilesize(sudFile)
 		const position = actualSize - bufferSize
 		var bufferRead = new Buffer(bufferSize)
-		fs.read(fd, bufferRead, 0, bufferSize, position, (err, bytesRead, buffer) => {
-			if(err) console.log(err)
-			else {
-				var meta = JSON.parse(buffer.toString())
-				//create request params based off thread positions
-			}
-		})
-	})
+		return fsRead(fd, bufferRead, 0, bufferSize, position)
+	}))
 }

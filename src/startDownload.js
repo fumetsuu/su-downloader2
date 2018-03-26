@@ -1,6 +1,6 @@
 const fs = require('fs')
 import { bindNodeCallback } from 'rxjs/observable/bindNodeCallback'
-import { getResponse, getFilesize, createMetaInitial, sudPath, readMeta } from './Utils'
+import { getResponse, getFilesize, createMetaInitial, sudPath, readMeta, getDataFromRequest } from './Utils'
 
 /**
  * starts/resumes downloading from the specified .sud file
@@ -15,5 +15,9 @@ export function startDownload(sudFile) {
 	
 	const fd$ = bindNodeCallback(fs.open)(sudFile, 'r+')
 	
-	readMeta(fd$, sudFile)
+	const readMeta$ = readMeta(fd$, sudFile)
+	
+	const data$ = getDataFromRequest(readMeta$)
+
+	data$.subscribe(console.log)
 }

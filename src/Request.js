@@ -5,7 +5,7 @@ import { Observable } from 'rxjs/Observable'
  * creates request object and events
  * @param {object} params - request params object
  */
-export function createRequest(params) {
+function createRequest(params) {
 	return Observable.create(observer => {
 		const req = request(params)
 			.on('data', data => observer.next({ event: 'data', data }))
