@@ -15,7 +15,7 @@ export function startDownload(sudFile) {
 	
 	const request$ = getRequest(readMeta$)
 
-	const meta$ = genMetaObservable(request$, readMeta$)
+	const meta$ = genMetaObservable(request$, readMeta$).pipe(share())
 
 	return meta$
 }

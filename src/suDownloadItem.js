@@ -17,6 +17,7 @@ function suDownloadItem(options) {
 		url: options.url,
 		path: options.path,
 		sudPath: suD.sudPath(options.path),
+		throttleRate: 500,
 		retry: options.retry || 5
 	}
 
@@ -48,7 +49,7 @@ function suDownloadItem(options) {
 
 	this.start = () => {
 		this.status = 'DOWNLOADING'
-		let { sudPath, url } = this.options
+		let { sudPath, url, throttleRate } = this.options
 		let dlPath = this.options.path
 		fs.access(sudPath, err => {
 			if(!err) this.downloadFromExisting()
@@ -56,6 +57,8 @@ function suDownloadItem(options) {
 				suD.initiateDownload({ url, path: dlPath })
 					.subscribe(x => {
 						this.setMeta(x)
+						this.calculateInitialStats(x)
+						this.updateInterval = setInterval(this.handleProgress, throttleRate)
 						this.downloadFromExisting()
 					})
 			}
@@ -66,19 +69,8 @@ function suDownloadItem(options) {
 
 	this.downloadFromExisting = () => {
 		this.status = 'DOWNLOADING'
-		let { sudPath, throttleRate } = this.options
+		let { sudPath } = this.options
 		const meta$ = suD.startDownload(sudPath)
-
-		meta$
-			.pipe(take(1))
-			.subscribe(
-				x => {
-					this.retried = 0
-					this.setMeta(x)
-					this.updateInterval = setInterval(this.handleProgress, throttleRate)
-				},
-				err => this.handleError(err)
-			)
 
 		this.progressSubscription = meta$
 			.subscribe(
@@ -154,7 +146,7 @@ function suDownloadItem(options) {
 	this.calculateDownloaded = () => {
 		let { threads, positions } = this.meta
 
-		if(!threads) { return 0 }
+		if(!threads || !positions) { return 0 }
 
 		let downloaded = 0
 		threads.forEach((thread, idx) => {

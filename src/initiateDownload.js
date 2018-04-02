@@ -1,6 +1,5 @@
-const fs = require('fs')
-import { bindNodeCallback } from 'rxjs/observable/bindNodeCallback'
-import { getResponse, getFilesize, createMetaInitial, sudPath } from './Utils'
+import { getResponse, getFilesize, createMetaInitial } from './Utils'
+import { share } from 'rxjs/operators'
 /**
  * Initiates a download, creating a new .sud file which has relevant metadata appended. Does not return anything.
  * @param {object} options 
@@ -8,18 +7,11 @@ import { getResponse, getFilesize, createMetaInitial, sudPath } from './Utils'
  * @param {string} options.path - file save path (relative)
  */
 export function initiateDownload(options) {
-	const filepath = options.path
-
-	/**
-	 * create file
-	 */
-	
-	const fd$ = bindNodeCallback(fs.open)(sudPath(filepath), 'w')
 	
 	const response$ = getResponse(options)
 	
 	const filesize$ = getFilesize(response$)
 
 	//creates meta to be appended to .sud file, contains path, sudPath, url, filesize and thread positions
-	return createMetaInitial(fd$, filesize$, options)
+	return createMetaInitial(filesize$, options).pipe(share())
 }

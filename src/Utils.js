@@ -57,12 +57,12 @@ export function genMetaObservable(request$, readMeta$) {
 }
 
 //gets remote file size by reading the response object
-export const getFilesize = response$ => response$.pipe(pluck('headers', 'content-length'), take(1), share())
+export const getFilesize = response$ => response$.pipe(take(1), pluck('headers', 'content-length'))
 
 const getLocalFilesize = file => fs.existsSync(file) ? fs.statSync(file).size : 0
 
 //creates meta to be written to .sud file
-export function createMetaInitial(fd$, filesize$, options) {
+export function createMetaInitial(filesize$, options) {
 	return filesize$.pipe(
 		concatMap(x => {
 			var filesize = parseInt(x)
