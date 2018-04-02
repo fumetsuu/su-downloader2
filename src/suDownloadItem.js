@@ -69,13 +69,17 @@ function suDownloadItem(options) {
 
 	this.downloadFromExisting = () => {
 		this.status = 'DOWNLOADING'
-		let { sudPath } = this.options
+		let { sudPath, throttleRate } = this.options
 		const meta$ = suD.startDownload(sudPath)
 
 		this.progressSubscription = meta$
 			.subscribe(
 				response => {
 					this.setMeta(response)
+					if(!this.updateInterval) { 
+						this.calculateInitialStats(response)
+						this.updateInterval = setInterval(this.handleProgress, throttleRate)
+					}
 				},
 				err => { 
 					this.handleError(err)
@@ -194,11 +198,11 @@ function suDownloadItem(options) {
 	}
 
 	this.calculatePresentTime = () => {
-		this.stats.present.time += this.options.throttleRate
+		this.stats.present.time += this.options.throttleRate / 1000
 	}
 
 	this.calculateSpeeds = () => {
-		this.stats.present.averageSpeed = 1000*this.stats.present.downloaded / this.stats.present.time
+		this.stats.present.averageSpeed = this.stats.present.downloaded / this.stats.present.time
 		this.stats.present.speed = this.stats.present.averageSpeed
 	}
 
