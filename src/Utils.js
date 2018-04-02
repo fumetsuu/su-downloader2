@@ -2,8 +2,8 @@ const fs = require('fs')
 import { Request } from './Request'
 import { bindNodeCallback } from 'rxjs/observable/bindNodeCallback'
 import { Observable } from 'rxjs/Observable'
-import 'rxjs/add/observable/from'
-import { filter, pluck, take, map, share, tap, withLatestFrom, concatMap, concat } from 'rxjs/operators'
+import 'rxjs/add/observable/of'
+import { filter, pluck, take, mergeMap, map, share, tap, withLatestFrom, concatMap, concat, switchMap } from 'rxjs/operators'
 import { merge } from 'rxjs/observable/merge'
 import { forkJoin } from 'rxjs/observable/forkJoin'
 
@@ -50,15 +50,23 @@ export function getRequest(readMeta$) {
 }
 
 export function genMetaObservable(fd$, request$, readMeta$) {
-	return forkJoin(fd$, readMeta$).pipe(
-		concatMap(([fd, readMeta]) => request$.pipe(
-			map(request => {
-				var meta = metaToJSON(readMeta[1])
-				var writeStream = fs.createWriteStream(readMeta.sudPath, { flags: 'r+', fd, start: meta.positions[0] })
-				return writeDataMetaBuffer(writeStream, request, meta)
-			})
-		))
-	)
+	const a$ = readMeta$.pipe(concatMap(readMeta => {
+		var meta = metaToJSON(readMeta[1])
+		var writeStream = fs.createWriteStream(meta.sudPath, { flags: 'r+', start: meta.positions[0] })
+		console.log('START: ', meta.positions[0])
+		return writeDataMetaBuffer(writeStream, request$, meta)
+	}))
+	// const o$ = forkJoin(fd$, readMeta$).pipe(
+	// 	concatMap(([fd, readMeta]) => request$.pipe(
+	// 		switchMap(request => {
+	// 			var meta = metaToJSON(readMeta[1])
+	// 			var writeStream = fs.createWriteStream(readMeta.sudPath, { flags: 'r+', fd, start: meta.positions[0] })
+	// 			const w$ = writeDataMetaBuffer(writeStream, request, meta)
+	// 			return w$
+	// 		})
+	// 	))
+	// )
+	return a$
 }
 
 //gets remote file size by reading the response object
@@ -87,8 +95,7 @@ export function createMetaInitial(fd$, filesize$, options) {
 
 //write meta to .sud file
 function writeMeta(fd, meta) {
-	var bufferData = new Buffer(bufferSize)
-	bufferData.fill(' ')
+	var bufferData = Buffer.alloc(bufferSize, ' ')
 	bufferData.write(JSON.stringify(meta))
 	var position = meta.positions[0]
 	return fsWrite(fd, bufferData, 0, bufferSize, position)
@@ -98,25 +105,25 @@ export function readMeta(fd$, sudFile) {
 	return fd$.pipe(concatMap(fd => {
 		const actualSize = getLocalFilesize(sudFile)
 		const position = actualSize - bufferSize
-		var bufferRead = new Buffer(bufferSize)
+		var bufferRead = Buffer.alloc(bufferSize)
 		return fsRead(fd, bufferRead, 0, bufferSize, position).pipe(share())
 	}))
 }
 
-function writeDataMetaBuffer(writeStream, request, meta) {
-	const wsWrite = bindNodeCallback(writeStream.write)
+function writeDataMetaBuffer(writeStream, request$, meta) {
 	var filesize = meta.filesize
 	var position = meta.positions[0]
-	if(request.data) {
-		var dataWrite$ = wsWrite(request.data)
-	} else {
-		var dataWrite$ = Observable.create(o => o.next(request))
-	}
-	var newMeta = Object.assign({}, meta, { threads: [[position, filesize]], positions: [position] })
-	var bufferData = new Buffer(bufferSize)
-	bufferData.fill(' ')
-	bufferData.write(JSON.stringify(newMeta))
-	var metaWrite$ = wsWrite(bufferData)
-	// return merge(metaWrite$, dataWrite$)
-	return dataWrite$
+	const e$ = request$.pipe(
+		filter(x => x.data),
+		concatMap(request => {
+			var dataWrite = writeStream.write(request.data)
+			var newMeta = Object.assign({}, meta, { threads: [[0, filesize]], positions: [position+request.data.toString().length] })
+			var bufferData = Buffer.alloc(bufferSize, ' ')
+			bufferData.write(JSON.stringify(newMeta))
+			// var metaWrite = writeStream.write(bufferData)
+			return Observable.of(JSON.stringify(newMeta))
+		}
+		)
+	)
+	return e$
 }

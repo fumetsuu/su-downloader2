@@ -1,6 +1,7 @@
 const fs = require('fs')
 import { bindNodeCallback } from 'rxjs/observable/bindNodeCallback'
 import { getResponse, getFilesize, createMetaInitial, sudPath, readMeta, getRequest, genMetaObservable } from './Utils'
+import { mergeAll, tap } from 'rxjs/operators'
 
 /**
  * starts/resumes downloading from the specified .sud file
@@ -8,7 +9,6 @@ import { getResponse, getFilesize, createMetaInitial, sudPath, readMeta, getRequ
  * @param {string} sudFile - existing .sud file created with initiateDownload
  */
 export function startDownload(sudFile) {
-
 	/**
 	 * create file
 	 */
@@ -19,5 +19,5 @@ export function startDownload(sudFile) {
 	
 	const request$ = getRequest(readMeta$)
 
-	const meta$ = genMetaObservable(fd$, request$, readMeta$).subscribe(x => console.log(x), console.log, () => console.log('why end lol'))
+	const meta$ = genMetaObservable(fd$, request$, readMeta$).subscribe(x => console.log(x), err => console.log('errr', err))
 }
