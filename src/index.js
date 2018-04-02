@@ -16,4 +16,6 @@ const testPathsud = sudPath(testPath)
 
 // initiateDownload({ url: 'https://imagejournal.org/wp-content/uploads/bb-plugin/cache/23466317216_b99485ba14_o-panorama.jpg', path: './downloads/test.jpg'})
 
+// initiateDownload({ url: 'http://www.sample-videos.com/text/Sample-text-file-1000kb.txt', path: './downloads/1mb.txt' })
+
 startDownload(testPathsud)

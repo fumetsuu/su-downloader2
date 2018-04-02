@@ -15,9 +15,9 @@ export function startDownload(sudFile) {
 	
 	const fd$ = bindNodeCallback(fs.open)(sudFile, 'r+')
 	
-	const readMeta$ = readMeta(fd$, sudFile)
+	const readMeta$ = readMeta(sudFile)
 	
 	const request$ = getRequest(readMeta$)
 
-	const meta$ = genMetaObservable(fd$, request$, readMeta$).subscribe(x => console.log(x), err => console.log('errr', err))
+	const meta$ = genMetaObservable(request$, readMeta$).subscribe(x => console.log(x), err => console.log('errr', err))
 }

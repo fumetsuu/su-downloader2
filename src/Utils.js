@@ -18,6 +18,7 @@ export const filterPluck = ($, f, p) => $.pipe(filter(x => x.event == f), pluck(
 const bufferSize = 1024 * 4
 const fsWrite = bindNodeCallback(fs.write)
 const fsRead = bindNodeCallback(fs.read)
+const fsReadFile = bindNodeCallback(fs.readFile)
 const metaToJSON = meta => JSON.parse(meta.toString())
 
 //returns an observable with request's response object
@@ -43,29 +44,19 @@ function genRequestParams(meta) {
 
 export function getRequest(readMeta$) {
 	return readMeta$.pipe(concatMap(readMeta => {
-		var meta = metaToJSON(readMeta[1])
+		var meta = metaToJSON(readMeta)
 		var params = genRequestParams(meta)
 		return Request(params)
 	}))
 }
 
-export function genMetaObservable(fd$, request$, readMeta$) {
+export function genMetaObservable(request$, readMeta$) {
 	const a$ = readMeta$.pipe(concatMap(readMeta => {
-		var meta = metaToJSON(readMeta[1])
-		var writeStream = fs.createWriteStream(meta.sudPath, { flags: 'r+', start: meta.positions[0] })
-		console.log('START: ', meta.positions[0])
+		var meta = metaToJSON(readMeta)
+		var writeStream = fs.createWriteStream(meta.path, { flags: 'a', start: meta.positions[0] })
+		console.log('start ', meta.positions[0])
 		return writeDataMetaBuffer(writeStream, request$, meta)
 	}))
-	// const o$ = forkJoin(fd$, readMeta$).pipe(
-	// 	concatMap(([fd, readMeta]) => request$.pipe(
-	// 		switchMap(request => {
-	// 			var meta = metaToJSON(readMeta[1])
-	// 			var writeStream = fs.createWriteStream(readMeta.sudPath, { flags: 'r+', fd, start: meta.positions[0] })
-	// 			const w$ = writeDataMetaBuffer(writeStream, request, meta)
-	// 			return w$
-	// 		})
-	// 	))
-	// )
 	return a$
 }
 
@@ -77,10 +68,8 @@ const getLocalFilesize = sudFile => fs.statSync(sudFile).size
 //creates meta to be appended to .sud file
 export function createMetaInitial(fd$, filesize$, options) {
 	return filesize$.pipe(
-		withLatestFrom(fd$),
-		concatMap(x => {
-			var filesize = parseInt(x[0])
-			var fd = x[1]
+		tap(x => {
+			var filesize = parseInt(x)
 			var meta = {
 				url: options.url,
 				path: options.path,
@@ -89,25 +78,21 @@ export function createMetaInitial(fd$, filesize$, options) {
 				threads: [[0, filesize]],
 				positions: [0]
 			}
-			return writeMeta(fd, meta)
+			writeMeta(meta)
 		}))
 }
 
 //write meta to .sud file
-function writeMeta(fd, meta) {
-	var bufferData = Buffer.alloc(bufferSize, ' ')
-	bufferData.write(JSON.stringify(meta))
-	var position = meta.positions[0]
-	return fsWrite(fd, bufferData, 0, bufferSize, position)
+function writeMeta(meta) {
+	var bufferData = Buffer.from(JSON.stringify(meta))
+	fs.writeFile(meta.sudPath, bufferData, err => {
+		if(err) throw err
+		console.log('meta written')
+	})
 }
 
-export function readMeta(fd$, sudFile) {
-	return fd$.pipe(concatMap(fd => {
-		const actualSize = getLocalFilesize(sudFile)
-		const position = actualSize - bufferSize
-		var bufferRead = Buffer.alloc(bufferSize)
-		return fsRead(fd, bufferRead, 0, bufferSize, position).pipe(share())
-	}))
+export function readMeta(sudFile) {
+	return fsReadFile(sudFile)
 }
 
 function writeDataMetaBuffer(writeStream, request$, meta) {
@@ -116,11 +101,10 @@ function writeDataMetaBuffer(writeStream, request$, meta) {
 	const e$ = request$.pipe(
 		filter(x => x.data),
 		concatMap(request => {
-			var dataWrite = writeStream.write(request.data)
-			var newMeta = Object.assign({}, meta, { threads: [[0, filesize]], positions: [position+request.data.toString().length] })
-			var bufferData = Buffer.alloc(bufferSize, ' ')
-			bufferData.write(JSON.stringify(newMeta))
-			// var metaWrite = writeStream.write(bufferData)
+			writeStream.write(request.data)
+			position += Buffer.byteLength(request.data)
+			var newMeta = Object.assign({}, meta, { threads: [[0, filesize]], positions: [position] })
+			writeMeta(newMeta)
 			return Observable.of(JSON.stringify(newMeta))
 		}
 		)
