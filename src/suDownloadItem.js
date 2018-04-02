@@ -17,8 +17,9 @@ function suDownloadItem(options) {
 		url: options.url,
 		path: options.path,
 		sudPath: suD.sudPath(options.path),
-		throttleRate: 500,
-		retry: options.retry || 5
+		throttleRate: options.throttleRate || 500,
+		retry: options.retry || 5,
+		concurrent: options.concurrent || 4
 	}
 
 	this.stats = {
@@ -49,12 +50,12 @@ function suDownloadItem(options) {
 
 	this.start = () => {
 		this.status = 'DOWNLOADING'
-		let { sudPath, url, throttleRate } = this.options
+		let { sudPath, url, throttleRate, concurrent } = this.options
 		let dlPath = this.options.path
 		fs.access(sudPath, err => {
 			if(!err) this.downloadFromExisting()
 			else { 
-				suD.initiateDownload({ url, path: dlPath })
+				suD.initiateDownload({ url, path: dlPath, concurrent })
 					.subscribe(x => {
 						this.setMeta(x)
 						this.calculateInitialStats(x)
