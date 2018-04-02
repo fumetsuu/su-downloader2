@@ -13,8 +13,6 @@ export function startDownload(sudFile) {
 	 * create file
 	 */
 	
-	const fd$ = bindNodeCallback(fs.open)(sudFile, 'r+')
-	
 	const readMeta$ = readMeta(sudFile)
 	
 	const request$ = getRequest(readMeta$)
