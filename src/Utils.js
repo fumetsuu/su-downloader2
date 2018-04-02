@@ -1,4 +1,5 @@
 const fs = require('fs')
+const concat = require('./concat')
 import { Request } from './Request'
 import { bindNodeCallback } from 'rxjs/observable/bindNodeCallback'
 import { Observable } from 'rxjs/Observable'
@@ -70,6 +71,18 @@ export function genMetaObservable(request$, readMeta$) {
 		map(metas => {
 			var basemeta = metas[0].baseMeta
 			var positions = metas.map(x => x.position)
+			var totalDownloaded = metas.map((x, i) => x.position - x.baseMeta.threads[i][0]).reduce((a, b) => a+b)
+			if(totalDownloaded == basemeta.filesize) {
+				var partials = []
+				for(var i = 0; i < metas.length; i++) {
+					partials.push(partialPath(basemeta.path, i))
+				}
+				concat(partials, basemeta.path, true).then(() => {
+					console.log('done rebuilding')
+					return Object.assign({}, basemeta, { positions, finished: true })
+				})
+				fs.unlinkSync(basemeta.sudPath)
+			}
 			var meta = Object.assign({}, basemeta, { positions })
 			return meta
 		})

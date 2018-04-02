@@ -22,13 +22,13 @@ const testPathsud = sudPath(testPath)
 
 // initiateDownload({ url: 'http://www.sample-videos.com/text/Sample-text-file-1000kb.txt', path: './downloads/1mb.txt' })
 
-// initiateDownload({ url: 'https://imagejournal.org/wp-content/uploads/bb-plugin/cache/23466317216_b99485ba14_o-panorama.jpg', path: './downloads/test.jpg'})
-// 	.subscribe(
-// 		x => console.log('FROM INDXE ', x), null,
-// 		() => {
-// 			startDownload(testPathsud)
-// 				.subscribe(x => console.log('from inde x  starttt', x))
-// 		})
+initiateDownload({ url: 'https://imagejournal.org/wp-content/uploads/bb-plugin/cache/23466317216_b99485ba14_o-panorama.jpg', path: './downloads/test.jpg'})
+	.subscribe(
+		x => console.log('FROM INDXE ', x), null,
+		() => {
+			startDownload(testPathsud)
+				.subscribe(x => console.log('from inde x  starttt', x))
+		})
 
 module.exports = {
 	initiateDownload,
