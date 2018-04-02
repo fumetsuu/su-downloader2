@@ -3,13 +3,14 @@ import { Request } from './Request'
 import { bindNodeCallback } from 'rxjs/observable/bindNodeCallback'
 import { Observable } from 'rxjs/Observable'
 import 'rxjs/add/observable/of'
-import { filter, pluck, take, share, tap, concatMap } from 'rxjs/operators'
+import { filter, pluck, take, share, tap, concatMap, combineAll, combineLatest, mergeAll, map, mergeMap } from 'rxjs/operators'
 
 /**
  * public util method to get .sud file
  * @param {string} filepath 
  */
 export const sudPath = filepath => `${filepath}.sud`
+const partialPath = (filepath, index) => `${filepath}.PARTIAL${index}`
 
 export const filterPluck = ($, f, p) => $.pipe(filter(x => x.event == f), pluck(p))
 
@@ -22,16 +23,16 @@ export function getResponse(params) {
 	return filterPluck(res$, 'response', 'res').pipe(take(1))
 }
 
-function calculateRange(threads, positions) {
-	var start = positions[0]
-	var end = threads[0][1]
+function calculateRange(thread, position) {
+	var end = thread[1]
+	var start = thread[0] + position
 	return `bytes=${start}-${end}`
 }
 
-function genRequestParams(meta) {
+function genRequestParams(meta, threadIdx) {
 	let { url, threads } = meta
-	var positions = [getLocalFilesize(meta.path)]
-	var headers = { range: calculateRange(threads, positions) }
+	var position = getLocalFilesize(partialPath(meta.path, threadIdx))
+	var headers = { range: calculateRange(threads[threadIdx], position) }
 	return {
 		url,
 		headers
@@ -39,20 +40,41 @@ function genRequestParams(meta) {
 }
 
 export function getRequest(readMeta$) {
-	return readMeta$.pipe(concatMap(readMeta => {
-		var meta = metaToJSON(readMeta)
-		var params = genRequestParams(meta)
-		return Request(params)
-	}))
+	return readMeta$.pipe(
+		concatMap(readMeta => {
+			var meta = metaToJSON(readMeta)
+			var Requests$$ = Observable.of(meta.threads.map((thread, threadIdx) => {
+				var params = genRequestParams(meta, threadIdx)
+				return Request(params)
+			})).pipe(combineAll())
+			return Requests$$
+		}),
+		combineAll()
+	)
 }
 
 export function genMetaObservable(request$, readMeta$) {
-	const a$ = readMeta$.pipe(concatMap(readMeta => {
-		var meta = metaToJSON(readMeta)
-		var startPos = getLocalFilesize(meta.path)
-		var writeStream = fs.createWriteStream(meta.path, { flags: 'a', start: startPos })
-		return writeDataMetaBuffer(writeStream, request$, meta)
-	}))
+	const a$ = readMeta$.pipe(
+		mergeMap(readMeta => {
+			var meta = metaToJSON(readMeta)
+			var writeBuffers$$ = Observable.of(meta.threads.map((thread, threadIdx) => {
+				var partialpath = partialPath(meta.path, threadIdx)
+				var startPos = getLocalFilesize(partialpath)
+				var writeStream = fs.createWriteStream(partialpath, { flags: 'a', start: startPos })
+				return writeDataMetaBuffer(writeStream, request$, meta, threadIdx)
+			})).pipe(combineLatest(), mergeAll())
+			return writeBuffers$$
+		}),
+		mergeAll(),
+		combineAll(),
+		map(metas => {
+			var basemeta = metas[0].baseMeta
+			var positions = metas.map(x => x.position)
+			var meta = Object.assign({}, basemeta, { positions })
+			return meta
+		})
+	)
+	console.log('RAW A$$$$$', a$)
 	return a$
 }
 
@@ -60,6 +82,18 @@ export function genMetaObservable(request$, readMeta$) {
 export const getFilesize = response$ => response$.pipe(take(1), pluck('headers', 'content-length'))
 
 const getLocalFilesize = file => fs.existsSync(file) ? fs.statSync(file).size : 0
+
+function genInitialThreads(filesize, concurrent) {
+	if(concurrent == 1) return [[0, filesize]]
+	var divSize = Math.floor(filesize / concurrent)
+	var threads = new Array(concurrent)
+	threads[0] = [0, divSize]
+	for(var i = 1; i < concurrent -1; i++) {
+		threads[i] = [divSize*i+1, divSize*(i+1)]
+	}
+	threads[concurrent-1] = [threads[concurrent-2][1]+1, filesize]
+	return threads
+}
 
 //creates meta to be written to .sud file
 export function createMetaInitial(filesize$, options) {
@@ -71,7 +105,7 @@ export function createMetaInitial(filesize$, options) {
 				path: options.path,
 				sudPath: sudPath(options.path),
 				filesize,
-				threads: [[0, filesize]]
+				threads: genInitialThreads(filesize, options.concurrent || 4)
 			}
 			writeMeta(meta)
 			return Observable.of(meta)
@@ -88,20 +122,21 @@ function writeMeta(meta) {
 }
 
 export function readMeta(sudFile) {
-	return fsReadFile(sudFile)
+	return fsReadFile(sudFile).pipe(share())
 }
 
-function writeDataMetaBuffer(writeStream, request$, meta) {
-	var filesize = meta.filesize
-	var position = getLocalFilesize(meta.path)
+function writeDataMetaBuffer(writeStream, request$, meta, threadIdx) {
+	var position = getLocalFilesize(partialPath(meta.path, threadIdx))
 	const e$ = request$.pipe(
-		filter(x => x.data),
 		concatMap(request => {
-			writeStream.write(request.data)
-			position += Buffer.byteLength(request.data)
-			if(position == filesize) { fs.unlinkSync(meta.sudPath) }
-			var newMeta = Object.assign({}, meta, { threads: [[0, filesize]], positions: [position] })
-			return Observable.of(newMeta)
+			return request[threadIdx].pipe(
+				filter(x => x.event == 'data'),
+				concatMap(x => {
+					writeStream.write(x.data)
+					position += Buffer.byteLength(x.data)
+					return Observable.of({ baseMeta: meta, position })
+				})
+			)
 		})
 	)
 	return e$
