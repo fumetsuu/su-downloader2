@@ -1,6 +1,6 @@
 import request from 'request'
 import { Observable } from 'rxjs/Observable'
-
+import { share } from 'rxjs/operators'
 /**
  * creates request object and events
  * @param {object} params - request params object
@@ -23,5 +23,5 @@ function createRequest(params) {
  */
 export function Request(params) {
 	const res$ = createRequest(params)
-	return res$
+	return res$.pipe(share())
 }

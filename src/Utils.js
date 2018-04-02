@@ -51,7 +51,6 @@ export function genMetaObservable(request$, readMeta$) {
 		var meta = metaToJSON(readMeta)
 		var startPos = getLocalFilesize(meta.path)
 		var writeStream = fs.createWriteStream(meta.path, { flags: 'a', start: startPos })
-		console.log('start ', startPos)
 		return writeDataMetaBuffer(writeStream, request$, meta)
 	}))
 	return a$
@@ -65,7 +64,7 @@ const getLocalFilesize = file => fs.existsSync(file) ? fs.statSync(file).size : 
 //creates meta to be written to .sud file
 export function createMetaInitial(fd$, filesize$, options) {
 	return filesize$.pipe(
-		tap(x => {
+		concatMap(x => {
 			var filesize = parseInt(x)
 			var meta = {
 				url: options.url,
@@ -75,6 +74,7 @@ export function createMetaInitial(fd$, filesize$, options) {
 				threads: [[0, filesize]]
 			}
 			writeMeta(meta)
+			return Observable.of(meta)
 		}))
 }
 
@@ -101,7 +101,7 @@ function writeDataMetaBuffer(writeStream, request$, meta) {
 			position += Buffer.byteLength(request.data)
 			if(position == filesize) { fs.unlinkSync(meta.sudPath) }
 			var newMeta = Object.assign({}, meta, { threads: [[0, filesize]], positions: [position] })
-			return Observable.of(JSON.stringify(newMeta))
+			return Observable.of(newMeta)
 		})
 	)
 	return e$

@@ -21,5 +21,5 @@ export function initiateDownload(options) {
 	const filesize$ = getFilesize(response$)
 
 	//creates meta to be appended to .sud file, contains path, sudPath, url, filesize and thread positions
-	createMetaInitial(fd$, filesize$, options).subscribe(() => {})
+	return createMetaInitial(fd$, filesize$, options)
 }
