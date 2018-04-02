@@ -6,7 +6,18 @@ const suDownloadItem = require('./suDownloadItem')
 
 // hey.start()
 
-// hey.on('progress', x => console.log(x))
+// hey.on('progress', x => {
+// 	var prog = {
+// 		SPEED: bytes(x.present.speed)+'/s',
+// 		DOWNLOADED: bytes(x.total.downloaded),
+// 		'TOTAL SIZE': bytes(x.total.size),
+// 		percentage: x.total.completed+'%',
+// 		elapsed: Math.ceil((x.present.time)),
+// 		remaining: Math.ceil((x.future.remaining)),
+// 		past: bytes(x.past.downloaded)
+// 	}
+// 	console.log(JSON.stringify(prog))
+// })
 
 
 getDownloadLink('https://www.masterani.me/anime/watch/2879-flcl-alternative/1', true)
@@ -21,8 +32,9 @@ getDownloadLink('https://www.masterani.me/anime/watch/2879-flcl-alternative/1', 
 				DOWNLOADED: bytes(x.total.downloaded),
 				'TOTAL SIZE': bytes(x.total.size),
 				percentage: x.total.completed+'%',
-				elapsed: Math.ceil((x.present.time)),
-				remaining: Math.ceil((x.future.remaining)),
+				elapsed: x.present.time,
+				ETA: x.future.eta,
+				remaining: x.future.remaining,
 				past: bytes(x.past.downloaded)
 			}
 			console.log(JSON.stringify(prog))

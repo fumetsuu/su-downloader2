@@ -74,7 +74,6 @@ export function genMetaObservable(request$, readMeta$) {
 			return meta
 		})
 	)
-	console.log('RAW A$$$$$', a$)
 	return a$
 }
 
@@ -126,7 +125,7 @@ export function readMeta(sudFile) {
 }
 
 function writeDataMetaBuffer(writeStream, request$, meta, threadIdx) {
-	var position = getLocalFilesize(partialPath(meta.path, threadIdx))
+	var position = getLocalFilesize(partialPath(meta.path, threadIdx)) + meta.threads[threadIdx][0]
 	const e$ = request$.pipe(
 		concatMap(request => {
 			return request[threadIdx].pipe(
