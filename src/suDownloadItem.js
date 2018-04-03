@@ -127,7 +127,7 @@ function suDownloadItem(options) {
 			if(fs.existsSync(partial)) unlinkPromises.push(fsUnlink(partial))
 		}
 		return new Promise((resolve, reject) => {
-			if(partial.length) {
+			if(unlinkPromises.length) {
 				Promise.all(unlinkPromises).then(() => {
 					fs.unlinkSync(this.options.sudPath)
 					return resolve()
