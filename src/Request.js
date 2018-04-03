@@ -11,7 +11,9 @@ function createRequest(params) {
 			.on('data', data => observer.next({ event: 'data', data }))
 			.on('response', res => {
 				let { statusCode } = res
+				console.log(statusCode, 'IM STATSU CODE')
 				if(statusCode >= 400 && statusCode <= 512) {
+					console.log('BAD STATUS OCDOEODEODE')
 					observer.error(statusCode)
 				} else {
 					observer.next({ event: 'response', res })

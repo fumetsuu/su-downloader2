@@ -5,7 +5,7 @@ import { share } from 'rxjs/operators'
  * @param {object} options 
  * @param {string} options.url - url to download
  * @param {string} options.path - file save path (relative)
- * @param {[number=4]} options.concurrent - number of concurrent downloads
+ * @param [number=4] options.concurrent - number of concurrent downloads
  */
 export function initiateDownload(options) {
 	

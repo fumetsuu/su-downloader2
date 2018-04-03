@@ -5,7 +5,7 @@ import { bindNodeCallback } from 'rxjs/observable/bindNodeCallback'
 import { Observable } from 'rxjs/Observable'
 import 'rxjs/add/observable/of'
 import 'rxjs/add/observable/throw'
-import { filter, pluck, take, share, tap, concatMap, combineAll, combineLatest, mergeAll, map, mergeMap } from 'rxjs/operators'
+import { filter, pluck, take, share, tap, concatMap, combineAll, combineLatest, mergeAll, map, mergeMap, catchError } from 'rxjs/operators'
 
 /**
  * public util method to get .sud file
@@ -166,6 +166,11 @@ function writeDataMetaBuffer(writeStream, request$, meta, threadIdx) {
 					return Observable.of({ baseMeta: meta, position })
 				})
 			)
+		}),
+		catchError(err => {
+			console.log('I GOT AN ERROR ', err)
+			writeStream.end()
+			return Observable.throw(err)
 		})
 	)
 	return e$

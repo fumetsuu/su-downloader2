@@ -15,8 +15,6 @@ export function startDownload(sudFile) {
 	
 	const request$ = getRequest(readMeta$)
 
-	// request$.subscribe(x => console.log('REQUEST $$$$$$$$', x), err => console.log('RTEQUEST ERROR', err), () => console.log('REQWUEST CFOMPLETE'))
-
 	const meta$ = genMetaObservable(request$, readMeta$).pipe(share())
 
 	return meta$

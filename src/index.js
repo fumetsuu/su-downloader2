@@ -1,7 +1,7 @@
 import { getDownloadLink } from './getDownloadLink'
 import { initiateDownload } from './initiateDownload'
 import { startDownload } from './startDownload'
-import { sudPath } from './Utils'
+import { sudPath, partialPath } from './Utils'
 
 const testPath = './downloads/test.mp4'
 const testPathsud = sudPath(testPath)
@@ -33,5 +33,6 @@ const testPathsud = sudPath(testPath)
 module.exports = {
 	initiateDownload,
 	startDownload,
-	sudPath
+	sudPath,
+	partialPath
 }

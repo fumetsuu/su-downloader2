@@ -121,11 +121,13 @@ function suDownloadItem(options) {
 	}
 
 	this.clearAllFiles = () => {
-		let { threads } = this.meta
-		var unlinkPromise = threads.map((t, i) => suD.partialPath(this.meta.path, i))
+		var unlinkPromises = []
+		for(var i = 0; i < this.options.concurrent; i++) {
+			unlinkPromises.push(fsUnlink(suD.partialPath(this.options.path, i)))
+		}
 		return new Promise((resolve, reject) => {
-			Promise.all(unlinkPromise).then(() => {
-				fs.unlinkSync(this.meta.sudPath)
+			Promise.all(unlinkPromises).then(() => {
+				fs.unlinkSync(this.options.sudPath)
 				return resolve()
 			}).catch(err => { if(err) return reject(err) })
 		})
