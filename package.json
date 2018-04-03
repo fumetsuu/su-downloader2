@@ -29,6 +29,7 @@
     "babel-eslint": "^8.2.2",
     "babel-jest": "^22.4.3",
     "babel-preset-env": "^1.6.1",
+    "draftlog": "^1.0.12",
     "eslint-config-airbnb-base": "^12.1.0",
     "eslint-plugin-import": "^2.9.0",
     "jest": "^22.4.3"

@@ -53,6 +53,7 @@ function suDownloadItem(options) {
 	}
 
 	this.start = () => {
+		if(this.status == 'DOWNLOADING') return false
 		this.status = 'DOWNLOADING'
 		let { sudPath, url, throttleRate, concurrent } = this.options
 		let dlPath = this.options.path
@@ -119,8 +120,18 @@ function suDownloadItem(options) {
 		this.retryTimeouts.forEach(clearTimeout)
 	}
 
+	this.clearAllFiles = () => {
+		let { threads } = this.meta
+		var unlinkPromise = threads.map((t, i) => suD.partialPath(this.meta.path, i))
+		return new Promise((resolve, reject) => {
+			Promise.all(unlinkPromise).then(() => {
+				fs.unlinkSync(this.meta.sudPath)
+				return resolve()
+			}).catch(err => { if(err) return reject(err) })
+		})
+	}
+
 	this.restart = () => {
-		console.log('RESTARTINGINIGNINGINGINGINGIIGGINIGN')
 		this.pause()
 		this.downloadFromExisting()
 	}
@@ -249,6 +260,15 @@ function suDownloadItem(options) {
 			this.pause()
 		}
 	}
+}
+
+function fsUnlink(file) {
+	return new Promise((resolve, reject) => {
+		fs.unlink(file, err => {
+			if(err) return reject(err)
+			return resolve(true)
+		})
+	})
 }
 
 module.exports = suDownloadItem

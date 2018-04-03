@@ -12,7 +12,7 @@ import { filter, pluck, take, share, tap, concatMap, combineAll, combineLatest, 
  * @param {string} filepath 
  */
 export const sudPath = filepath => `${filepath}.sud`
-const partialPath = (filepath, index) => `${filepath}.PARTIAL${index}`
+export const partialPath = (filepath, index) => `${filepath}.PARTIAL${index}`
 
 export const filterPluck = ($, f, p) => $.pipe(filter(x => x.event == f), pluck(p))
 

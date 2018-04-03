@@ -1,28 +1,40 @@
 import { getDownloadLink } from './getDownloadLink'
 const bytes = require('bytes')
 const suDownloadItem = require('./suDownloadItem')
-const log = require('single-line-log').stdout
+// const log = require('single-line-log').stdout
+require('draftlog').into(console)
 
-const hey = new suDownloadItem({ url: 'http://ftp.iinet.net.au/test50MB.dat', path: './downloads/TESTSUD.test', concurrent: 18, throttleRate: 100 })
+const sud = require('./suDownloader')
 
-hey.start()
+sud.QueueDownload({ key: '50mb iinet 1', url: 'http://ftp.iinet.net.au/test50MB.dat', path: './downloads/TESTSUD.test', concurrent: 18, throttleRate: 100 })
+sud.QueueDownload({ key: '50mb iinet 2', url: 'http://ftp.iinet.net.au/test50MB.dat', path: './downloads/TESTSUD1.test', concurrent: 18, throttleRate: 100 })
 
-var maxSpeed = 0
-var minSpeed = 0
+var hey = sud.getActiveDownload('50mb iinet 1')
+var hey1 = sud.getActiveDownload('50mb iinet 2')
 
-hey.on('progress', eat)
+// var hey = new suDownloadItem({ url: 'http://ftp.iinet.net.au/test50MB.dat', path: './downloads/TESTSUD.test', concurrent: 18, throttleRate: 100 })
+
+// hey.start()
+var heydraft = console.draft('DOWNLOAD 50MB IINET 1')
+
+hey.on('progress', x => eat(x, heydraft))
 
 hey.on('error', err => {
 	console.log('IM AN ERROR THATS BEING DEAD BECAUSE AFTER RETRIED', err)
 })
 
-hey.on('finish', (x) => {
-	eat(x)
-	console.log('\nMAX SPEED REACHED SUDOWNLOADER2: ', bytes(maxSpeed)+'/s')
-	console.log('\nMIN SPEED REACHED SUDOWNLOADER2: ', bytes(minSpeed)+'/s')	
-})
+hey.on('finish', x => eat(x, heydraft))
 
-function eat(x) {
+var heydraft1 = console.draft('DOWNLOAD 50MB IINET 2')
+hey1.on('progress', x => eat(x, heydraft1))
+
+hey1.on('error', err => {
+	console.log('IM AN ERROR THATS BEING DEAD BECAUSE AFTER RETRIED', err)
+})
+hey1.on('finish', x => eat(x, heydraft1))
+
+
+function eat(x, draft) {
 	var prog = {
 		speed: bytes(x.present.speed)+'/s',
 		downloaded: bytes(x.total.downloaded),
@@ -33,11 +45,10 @@ function eat(x) {
 		remaining: x.future.remaining,
 		past: bytes(x.past.downloaded)
 	}
-	if(minSpeed == 0 && x.present.speed) minSpeed = x.present.speed
-	if(x.present.speed > maxSpeed) maxSpeed = x.present.speed
-	if(x.present.speed < minSpeed) minSpeed = x.present.speed
-	consoleUpdate(`${prog.speed}   |   ${prog.downloaded}/${prog.total}   |  elapsed: ${prog.elapsed} | eta: ${prog.ETA}  |  ${prog.percentage}  |  past: ${prog.past}`)
+	draft(`${prog.speed}   |   ${prog.downloaded}/${prog.total}   |  elapsed: ${prog.elapsed} | eta: ${prog.ETA}  |  ${prog.percentage}  |  past: ${prog.past}`)
 }
+
+
 
 // getDownloadLink('https://www.masterani.me/anime/watch/2768-yowamushi-pedal-glory-line/13', true)
 // 	.then(link => {
@@ -59,7 +70,3 @@ function eat(x) {
 // 			consoleUpdate(`${prog.speed}  .........   |   ${prog.downloaded}/${prog.total}  .........  |  elapsed: ${prog.elapsed}  ........... | eta: ${prog.ETA}`)
 // 		})
 // 	})
-
-function consoleUpdate(msg) {
-	log(msg)
-}
