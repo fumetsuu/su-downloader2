@@ -57,7 +57,6 @@ export function getRequest(readMeta$) {
 				meta.threads
 					.map((thread, threadIdx) => {
 						if(!isValidThread(meta,threadIdx)) return 'COMPLETED'
-						console.log(threadIdx)
 						var params = genRequestParams(meta, threadIdx)
 						return Request(params)
 					})).pipe(combineAll())
@@ -87,7 +86,6 @@ export function genMetaObservable(request$, readMeta$) {
 			var basemeta = metas[0].baseMeta
 			var positions = metas.map(x => x.position)
 			var totalDownloaded = metas.map((x, i) => x.position - x.baseMeta.threads[i][0]).reduce((a, b) => a+b)
-			console.log(totalDownloaded, basemeta.filesize)
 			if(totalDownloaded >= basemeta.filesize) {
 				var partials = []
 				for(var i = 0; i < metas.length; i++) {
@@ -155,10 +153,8 @@ export function readMeta(sudFile) {
 function writeDataMetaBuffer(writeStream, request$, meta, threadIdx) {
 	var position = getLocalFilesize(partialPath(meta.path, threadIdx)) + meta.threads[threadIdx][0]
 	if(!isValidThread(meta, threadIdx)) {
-		console.log('FROM WRITE NOT VALID ', threadIdx, meta.threads[threadIdx][0], meta.threads[threadIdx][1], meta.threads[threadIdx][1]-position)
 		return Observable.of({ baseMeta: meta, position})
-	}
-	console.log('FROM WRITE ISSSSSSS VALID ', threadIdx, meta.threads[threadIdx][0], meta.threads[threadIdx][1], meta.threads[threadIdx][1]-position)	
+	}	
 	const e$ = request$.pipe(
 		concatMap(request => {
 			return request[threadIdx].pipe(

@@ -10,7 +10,19 @@ hey.start()
 var maxSpeed = 0
 var minSpeed = 0
 
-hey.on('progress', x => {
+hey.on('progress', eat)
+
+hey.on('error', err => {
+	console.log('IM AN ERROR THATS BEING DEAD BECAUSE AFTER RETRIED', err)
+})
+
+hey.on('finish', (x) => {
+	eat(x)
+	console.log('\nMAX SPEED REACHED SUDOWNLOADER2: ', bytes(maxSpeed)+'/s')
+	console.log('\nMIN SPEED REACHED SUDOWNLOADER2: ', bytes(minSpeed)+'/s')	
+})
+
+function eat(x) {
 	var prog = {
 		speed: bytes(x.present.speed)+'/s',
 		downloaded: bytes(x.total.downloaded),
@@ -25,16 +37,7 @@ hey.on('progress', x => {
 	if(x.present.speed > maxSpeed) maxSpeed = x.present.speed
 	if(x.present.speed < minSpeed) minSpeed = x.present.speed
 	consoleUpdate(`${prog.speed}   |   ${prog.downloaded}/${prog.total}   |  elapsed: ${prog.elapsed} | eta: ${prog.ETA}  |  ${prog.percentage}`)
-})
-
-hey.on('error', err => {
-	console.log('IM AN ERROR THATS BEING DEAD BECAUSE AFTER RETRIED', err)
-})
-
-hey.on('finish', () => {
-	console.log('\nMAX SPEED REACHED SUDOWNLOADER2: ', bytes(maxSpeed)+'/s')
-	console.log('\nMIN SPEED REACHED SUDOWNLOADER2: ', bytes(minSpeed)+'/s')	
-})
+}
 
 // getDownloadLink('https://www.masterani.me/anime/watch/2768-yowamushi-pedal-glory-line/13', true)
 // 	.then(link => {
