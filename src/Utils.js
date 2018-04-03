@@ -162,6 +162,7 @@ function writeDataMetaBuffer(writeStream, request$, meta, threadIdx) {
 				concatMap(x => {
 					writeStream.write(x.data)
 					position += Buffer.byteLength(x.data)
+					if(position >= meta.threads[threadIdx][1]) writeStream.end()
 					return Observable.of({ baseMeta: meta, position })
 				})
 			)

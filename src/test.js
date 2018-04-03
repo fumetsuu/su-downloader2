@@ -7,10 +7,10 @@ require('draftlog').into(console)
 const sud = require('./suDownloader')
 
 sud.QueueDownload({ key: '50mb iinet 1', url: 'http://ftp.iinet.net.au/test50MB.dat', path: './downloads/TESTSUD.test', concurrent: 18, throttleRate: 100 })
-sud.QueueDownload({ key: '50mb iinet 2', url: 'http://ftp.iinet.net.au/test50MB.dat', path: './downloads/TESTSUD1.test', concurrent: 18, throttleRate: 100 })
+// sud.QueueDownload({ key: '50mb iinet 2', url: 'http://ftp.iinet.net.au/test50MB.dat', path: './downloads/TESTSUD1.test', concurrent: 18, throttleRate: 100 })
 
 var hey = sud.getActiveDownload('50mb iinet 1')
-var hey1 = sud.getActiveDownload('50mb iinet 2')
+// var hey1 = sud.getActiveDownload('50mb iinet 2')
 
 // var hey = new suDownloadItem({ url: 'http://ftp.iinet.net.au/test50MB.dat', path: './downloads/TESTSUD.test', concurrent: 18, throttleRate: 100 })
 
@@ -23,15 +23,18 @@ hey.on('error', err => {
 	console.log('IM AN ERROR THATS BEING DEAD BECAUSE AFTER RETRIED', err)
 })
 
-hey.on('finish', x => eat(x, heydraft))
-
-var heydraft1 = console.draft('DOWNLOAD 50MB IINET 2')
-hey1.on('progress', x => eat(x, heydraft1))
-
-hey1.on('error', err => {
-	console.log('IM AN ERROR THATS BEING DEAD BECAUSE AFTER RETRIED', err)
+hey.on('finish', x => {
+	eat(x, heydraft)
+	setInterval(() => console.log('OH JUST WAITIN U KNOW'), 1000)
 })
-hey1.on('finish', x => eat(x, heydraft1))
+
+// var heydraft1 = console.draft('DOWNLOAD 50MB IINET 2')
+// hey1.on('progress', x => eat(x, heydraft1))
+
+// hey1.on('error', err => {
+// 	console.log('IM AN ERROR THATS BEING DEAD BECAUSE AFTER RETRIED', err)
+// })
+// hey1.on('finish', x => eat(x, heydraft1))
 
 
 function eat(x, draft) {
