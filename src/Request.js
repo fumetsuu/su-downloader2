@@ -12,7 +12,7 @@ function createRequest(params) {
 			.on('response', res => {
 				let { statusCode } = res
 				if(statusCode >= 400 && statusCode <= 512) {
-					observer.error(statusCode)
+					observer.error({ res, statusCode})
 				} else {
 					observer.next({ event: 'response', res })
 				}

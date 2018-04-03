@@ -123,13 +123,16 @@ function suDownloadItem(options) {
 	this.clearAllFiles = () => {
 		var unlinkPromises = []
 		for(var i = 0; i < this.options.concurrent; i++) {
-			unlinkPromises.push(fsUnlink(suD.partialPath(this.options.path, i)))
+			var partial = suD.partialPath(this.options.path, i)
+			if(fs.existsSync(partial)) unlinkPromises.push(fsUnlink(partial))
 		}
 		return new Promise((resolve, reject) => {
-			Promise.all(unlinkPromises).then(() => {
-				fs.unlinkSync(this.options.sudPath)
-				return resolve()
-			}).catch(err => { if(err) return reject(err) })
+			if(partial.length) {
+				Promise.all(unlinkPromises).then(() => {
+					fs.unlinkSync(this.options.sudPath)
+					return resolve()
+				}).catch(err => { if(err) return reject(err) })
+			} else return resolve()
 		})
 	}
 
@@ -254,11 +257,12 @@ function suDownloadItem(options) {
 			this.emit('error', err)
 			return false
 		}
-		if(err.code == 'ENOTFOUND' || err.code == 'ECONNRESET') {
+		if((err.code == 'ENOTFOUND' || err.code == 'ECONNRESET') && fs.existsSync(this.options.sudPath)) {
 			var retryTimeout = setTimeout(this.restart, 5000 * (1 + this.retried))
 			this.retryTimeouts.push(retryTimeout)
 			this.retried++
 		} else {
+			console.log('err probably no internet or blocked access from download server', err)
 			this.pause()
 		}
 	}

@@ -5,7 +5,7 @@ const suDownloadItem = require('./suDownloadItem')
 require('draftlog').into(console)
 
 const sud = require('./suDownloader')
-
+//https://www7.mp4upload.com:282/d/scxtfy3mz3b4quuockvbqjcbkl667cv64myaywi24aplacvwbewkx7pk/[kooritsukai-UMU] Fate Extra Last Encore - 01 [720p].mp4
 sud.QueueDownload({ key: 'dead anime', url: 'https://www7.mp4upload.com:282/d/scxtfy3mz3b4quuockvbqjcbkl667cv64myaywi24aplacvwbewkx7pk/[kooritsukai-UMU] Fate Extra Last Encore - 01 [720p].mp4', path: './downloads/TESTSUD.test', concurrent: 4, throttleRate: 100 })
 // sud.QueueDownload({ key: '50mb iinet 2', url: 'http://ftp.iinet.net.au/test50MB.dat', path: './downloads/TESTSUD1.test', concurrent: 18, throttleRate: 100 })
 
@@ -15,7 +15,7 @@ var hey = sud.getActiveDownload('dead anime')
 // var hey = new suDownloadItem({ url: 'http://ftp.iinet.net.au/test50MB.dat', path: './downloads/TESTSUD.test', concurrent: 18, throttleRate: 100 })
 
 // hey.start()
-var heydraft = console.draft('dead anim,e')
+var heydraft = console.draft('dead anime')
 
 hey.on('progress', x => {
 	eat(x, heydraft)
@@ -25,6 +25,10 @@ setTimeout(() => {
 	console.log('clearing?')
 	sud.clearDownload('dead anime', true)
 }, 20000)
+
+// setTimeout(() => {
+// 	console.log(hey)
+// }, 21000)
 
 hey.on('error', err => {
 	console.log('IM AN ERROR THATS BEING DEAD BECAUSE AFTER RETRIED', err)

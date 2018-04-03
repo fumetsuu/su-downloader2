@@ -5,8 +5,8 @@ import { bindNodeCallback } from 'rxjs/observable/bindNodeCallback'
 import { Observable } from 'rxjs/Observable'
 import 'rxjs/add/observable/of'
 import 'rxjs/add/observable/throw'
+import 'rxjs/add/operator/finally'
 import { filter, pluck, take, share, tap, concatMap, combineAll, combineLatest, mergeAll, map, mergeMap, catchError } from 'rxjs/operators'
-
 /**
  * public util method to get .sud file
  * @param {string} filepath 
@@ -105,7 +105,10 @@ export function genMetaObservable(request$, readMeta$) {
 }
 
 //gets remote file size by reading the response object
-export const getFilesize = response$ => response$.pipe(take(1), pluck('headers', 'content-length'))
+export const getFilesize = response$ => response$.pipe(take(1), pluck('headers', 'content-length'), catchError(err => {
+	if(err.res) return Observable.of(err.res.headers['content-length'])
+	else return Observable.throw(err)
+}))
 
 const getLocalFilesize = file => fs.existsSync(file) ? fs.statSync(file).size : 0
 
@@ -166,12 +169,10 @@ function writeDataMetaBuffer(writeStream, request$, meta, threadIdx) {
 					return Observable.of({ baseMeta: meta, position })
 				})
 			)
-		}),
-		catchError(err => {
-			console.log('I GOT AN ERROR ', err)
-			writeStream.end()
-			return Observable.throw(err)
 		})
-	)
+	).finally(() => {
+		writeStream.end()
+		console.log('FINALYLLY OL OLOLOLOLOLOLOLOOLOL')
+	})
 	return e$
 }
