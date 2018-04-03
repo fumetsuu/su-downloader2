@@ -22,6 +22,8 @@ function suDownloadItem(options) {
 
 	this.retried = 0
 
+	this.retryTimeouts = []
+
 	this.started = false
 
 	this.stats = {
@@ -113,13 +115,19 @@ function suDownloadItem(options) {
 		}
 	}
 
+	this.clearRetryTimeouts = () => {
+		this.retryTimeouts.forEach(clearTimeout)
+	}
+
 	this.restart = () => {
+		console.log('RESTARTINGINIGNINGINGINGINGIIGGINIGN')
 		this.pause()
 		this.downloadFromExisting()
 	}
 
 	this.handleProgress = () => {
 		this.calculateStats()
+		this.clearRetryTimeouts()
 		if(this.stats.present.deltaDownloaded == 0) this.clearUpdateInterval()
 		else this.emit('progress', this.stats)
 	}
@@ -229,14 +237,13 @@ function suDownloadItem(options) {
 	//endregion
 
 	this.handleError = err => {
-		console.log(err,' HEYYYYYLOLOLOLOLOLOL')
 		if(this.retried == this.options.retry) {
 			this.emit('error', err)
 			return false
 		}
 		if(err.code == 'ENOTFOUND' || err.code == 'ECONNRESET') {
-			console.log('goT BAD CONNECTION RETYRING ', this.retried)
-			this.restart()
+			var retryTimeout = setTimeout(this.restart, 5000 * (1 + this.retried))
+			this.retryTimeouts.push(retryTimeout)
 			this.retried++
 		} else {
 			this.pause()

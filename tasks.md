@@ -7,5 +7,5 @@
 - [x] progress and speed data (can be improved)
 - [x] write tests and benchmarks and implementation comparisons
 - [ ] refactor util functions
-- [x] handle errors
+- [x] handle errors - retries after 5 seconds
 - [ ] clean up concat module
