@@ -1,4 +1,9 @@
 # Core
-- [ ] initiate download
-- [ ] write meta data to file
-- [ ] rad meta data and resume download
+- [x] initiate download
+- [x] write meta data to file
+- [x] read meta data and resume download
+- [x] multi-threaded partial downloads
+- [x] file concatenation
+- [x] progress and speed data (can be improved)
+- [ ] write tests and benchmarks and implementation comparisons
+- [ ] refactor util functions

@@ -1,5 +1,3 @@
-import { take } from 'rxjs/operators'
-
 const fs = require('fs')
 const util = require('util')
 const EventEmitter = require('events').EventEmitter
