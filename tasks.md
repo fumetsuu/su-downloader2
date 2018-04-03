@@ -5,5 +5,6 @@
 - [x] multi-threaded partial downloads
 - [x] file concatenation
 - [x] progress and speed data (can be improved)
-- [ ] write tests and benchmarks and implementation comparisons
+- [x] write tests and benchmarks and implementation comparisons
 - [ ] refactor util functions
+- [x] handle errors

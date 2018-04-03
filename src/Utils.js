@@ -4,6 +4,7 @@ import { Request } from './Request'
 import { bindNodeCallback } from 'rxjs/observable/bindNodeCallback'
 import { Observable } from 'rxjs/Observable'
 import 'rxjs/add/observable/of'
+import 'rxjs/add/observable/throw'
 import { filter, pluck, take, share, tap, concatMap, combineAll, combineLatest, mergeAll, map, mergeMap } from 'rxjs/operators'
 
 /**
@@ -129,7 +130,6 @@ function writeMeta(meta) {
 	var bufferData = Buffer.from(JSON.stringify(meta))
 	fs.writeFile(meta.sudPath, bufferData, err => {
 		if(err) throw err
-		console.log('meta written')
 	})
 }
 
@@ -142,11 +142,18 @@ function writeDataMetaBuffer(writeStream, request$, meta, threadIdx) {
 	const e$ = request$.pipe(
 		concatMap(request => {
 			return request[threadIdx].pipe(
-				filter(x => x.event == 'data'),
+				// filter(x => x.event == 'data'),
 				concatMap(x => {
-					writeStream.write(x.data)
-					position += Buffer.byteLength(x.data)
-					return Observable.of({ baseMeta: meta, position })
+					if(x.event == 'response') {
+						let { statusCode } = x.res
+						if(statusCode >= 400 && statusCode <= 512) {
+							return Observable.throw(statusCode)
+						}
+					} else {
+						writeStream.write(x.data)
+						position += Buffer.byteLength(x.data)
+						return Observable.of({ baseMeta: meta, position })
+					}
 				})
 			)
 		})
