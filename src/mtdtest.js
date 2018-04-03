@@ -3,7 +3,7 @@ const bytes = require('bytes')
 const mtdD = require('./mtdD')
 const log = require('single-line-log').stdout
 
-const hey = new mtdD({ url: 'http://ftp.iinet.net.au/test50MB.dat', path: './downloads/TESTMTD.test', concurrent: 30, throttleRate: 100 })
+const hey = new mtdD({ url: 'http://ftp.iinet.net.au/test50MB.dat', path: './downloads/TESTMTD.test', concurrent: 12, throttleRate: 100 })
 
 hey.start()
 

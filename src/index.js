@@ -3,14 +3,14 @@ import { initiateDownload } from './initiateDownload'
 import { startDownload } from './startDownload'
 import { sudPath } from './Utils'
 
-const testPath = './downloads/test.html'
+const testPath = './downloads/test.mp4'
 const testPathsud = sudPath(testPath)
 
 // getDownloadLink('https://www.masterani.me/anime/watch/2758-darling-in-the-franxx/10')
 // 	.then(link => {
 // 		initiateDownload({
 // 			url: link,
-// 			path: './downloads/test.mp4'
+// 			path: testPath
 // 		}).subscribe(
 // 			x => console.log(x), null,
 // 			() => {

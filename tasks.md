@@ -8,3 +8,4 @@
 - [x] write tests and benchmarks and implementation comparisons
 - [ ] refactor util functions
 - [x] handle errors
+- [ ] clean up concat module

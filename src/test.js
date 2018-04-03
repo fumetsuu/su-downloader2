@@ -3,7 +3,7 @@ const bytes = require('bytes')
 const suDownloadItem = require('./suDownloadItem')
 const log = require('single-line-log').stdout
 
-const hey = new suDownloadItem({ url: 'http://ftp.iinet.net.au/test50MB.dat', path: './downloads/TESTSUD.test', concurrent: 30, throttleRate: 100 })
+const hey = new suDownloadItem({ url: 'http://ftp.iinet.net.au/test50MB.dat', path: './downloads/TESTSUD.test', concurrent: 18, throttleRate: 100 })
 
 hey.start()
 
@@ -36,7 +36,7 @@ function eat(x) {
 	if(minSpeed == 0 && x.present.speed) minSpeed = x.present.speed
 	if(x.present.speed > maxSpeed) maxSpeed = x.present.speed
 	if(x.present.speed < minSpeed) minSpeed = x.present.speed
-	consoleUpdate(`${prog.speed}   |   ${prog.downloaded}/${prog.total}   |  elapsed: ${prog.elapsed} | eta: ${prog.ETA}  |  ${prog.percentage}`)
+	consoleUpdate(`${prog.speed}   |   ${prog.downloaded}/${prog.total}   |  elapsed: ${prog.elapsed} | eta: ${prog.ETA}  |  ${prog.percentage}  |  past: ${prog.past}`)
 }
 
 // getDownloadLink('https://www.masterani.me/anime/watch/2768-yowamushi-pedal-glory-line/13', true)

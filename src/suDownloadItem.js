@@ -22,6 +22,8 @@ function suDownloadItem(options) {
 
 	this.retried = 0
 
+	this.started = false
+
 	this.stats = {
 		time: {
 			start: 0,
@@ -59,7 +61,8 @@ function suDownloadItem(options) {
 					.subscribe(x => {
 						this.setMeta(x)
 						this.calculateInitialStats(x)
-						this.updateInterval = setInterval(this.handleProgress, throttleRate)
+						this.initialClock = setInterval(this.calculatePresentTime, throttleRate)
+						this.started = true
 						this.downloadFromExisting()
 					},
 					this.handleError
@@ -80,8 +83,11 @@ function suDownloadItem(options) {
 				response => {
 					this.setMeta(response)
 					if(!this.updateInterval) {
-						console.log('!this.updateInterval') 
-						this.calculateInitialStats(response)
+						if(this.initialClock) clearInterval(this.initialClock)
+						if(!this.started) {
+							this.calculateInitialStats(response)
+							this.started = true
+						}
 						this.updateInterval = setInterval(this.handleProgress, throttleRate)
 					}
 				},
@@ -92,14 +98,18 @@ function suDownloadItem(options) {
 	}
 
 	this.pause = () => {
-		if(this.updateInterval) {
-			clearInterval(this.updateInterval)
-			this.updateInterval = null
-		}
+		this.clearUpdateInterval()
 		this.status = 'PAUSED'
 		this.emit('pause')
 		if(this.progressSubscription) {
 			this.progressSubscription.unsubscribe()
+		}
+	}
+
+	this.clearUpdateInterval = () => {
+		if(this.updateInterval) {
+			clearInterval(this.updateInterval)
+			this.updateInterval = null
 		}
 	}
 
@@ -110,8 +120,8 @@ function suDownloadItem(options) {
 
 	this.handleProgress = () => {
 		this.calculateStats()
-		console.log('\nHEYyeyaehath', this.stats.present.deltaDownloaded)		
-		this.emit('progress', this.stats)
+		if(this.stats.present.deltaDownloaded == 0) this.clearUpdateInterval()
+		else this.emit('progress', this.stats)
 	}
 
 	//region STATS CALCULATION FUNCTIONS
@@ -146,7 +156,7 @@ function suDownloadItem(options) {
 		this.calculateSpeeds()
 		this.calculateFutureRemaining()
 		this.calculateFutureEta()
-		clearInterval(this.updateInterval)
+		this.clearUpdateInterval()
 		this.emit('finish', this.stats)
 	}
 
@@ -198,7 +208,6 @@ function suDownloadItem(options) {
 
 	this.calculatePresentDownloaded = () => {
 		this.stats.present.downloaded = this.stats.total.downloaded - this.stats.past.downloaded
-		console.log('\nIM PRESENT DOWNLOADED', this.stats.present.downloaded)
 	}
 
 	this.calculatePresentTime = () => {

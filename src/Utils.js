@@ -91,7 +91,7 @@ export function genMetaObservable(request$, readMeta$) {
 				for(var i = 0; i < metas.length; i++) {
 					partials.push(partialPath(basemeta.path, i))
 				}
-				concat(partials, basemeta.path, true).then(() => {
+				concat(partials, basemeta.path, true, true).then(() => {
 					console.log('done rebuilding')
 					return Object.assign({}, basemeta, { positions, finished: true })
 				})
