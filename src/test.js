@@ -27,6 +27,10 @@ hey.on('progress', x => {
 	consoleUpdate(`${prog.speed}   |   ${prog.downloaded}/${prog.total}   |  elapsed: ${prog.elapsed} | eta: ${prog.ETA}  |  ${prog.percentage}`)
 })
 
+hey.on('error', err => {
+	console.log('IM AN ERROR THATS BEING DEAD BECAUSE AFTER RETRIED', err)
+})
+
 hey.on('finish', () => {
 	console.log('\nMAX SPEED REACHED SUDOWNLOADER2: ', bytes(maxSpeed)+'/s')
 	console.log('\nMIN SPEED REACHED SUDOWNLOADER2: ', bytes(minSpeed)+'/s')	

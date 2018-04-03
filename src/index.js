@@ -22,13 +22,13 @@ const testPathsud = sudPath(testPath)
 
 // initiateDownload({ url: 'http://www.sample-videos.com/text/Sample-text-file-1000kb.txt', path: './downloads/1mb.txt' })
 
-initiateDownload({ url: 'https://www.matomari.tk/api/0.4/src/', path: testPath})
-	.subscribe(
-		x => console.log('FROM INDXE ', x), null,
-		() => {
-			startDownload(testPathsud)
-				.subscribe(() => console.log('x'), err => console.log('ERTOROROROROROOR', err))
-		})
+// initiateDownload({ url: 'https://www.matomari.tk/api/0.4/src/', path: testPath})
+// 	.subscribe(
+// 		x => console.log('FROM INDXE ', x), err => console.log('START ERROROOOOOOO', err, err.code),
+// 		() => {
+// 			startDownload(testPathsud)
+// 				.subscribe(() => console.log('x'), err => console.log('EREROEROROR', err, err.code))
+// 		})
 
 module.exports = {
 	initiateDownload,

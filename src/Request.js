@@ -9,7 +9,14 @@ function createRequest(params) {
 	return Observable.create(observer => {
 		const req = request(params)
 			.on('data', data => observer.next({ event: 'data', data }))
-			.on('response', res => observer.next({ event: 'response', res }))
+			.on('response', res => {
+				let { statusCode } = res
+				if(statusCode >= 400 && statusCode <= 512) {
+					observer.error(statusCode)
+				} else {
+					observer.next({ event: 'response', res })
+				}
+			})
 			.on('error', err => observer.error(err))
 			.on('complete', () => observer.complete())
 

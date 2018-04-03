@@ -20,6 +20,8 @@ function suDownloadItem(options) {
 		concurrent: options.concurrent || 4
 	}
 
+	this.retried = 0
+
 	this.stats = {
 		time: {
 			start: 0,
@@ -59,7 +61,9 @@ function suDownloadItem(options) {
 						this.calculateInitialStats(x)
 						this.updateInterval = setInterval(this.handleProgress, throttleRate)
 						this.downloadFromExisting()
-					})
+					},
+					this.handleError
+					)
 			}
 
 			this.calculateStartTime()
@@ -75,15 +79,14 @@ function suDownloadItem(options) {
 			.subscribe(
 				response => {
 					this.setMeta(response)
-					if(!this.updateInterval) { 
+					if(!this.updateInterval) {
+						console.log('!this.updateInterval') 
 						this.calculateInitialStats(response)
 						this.updateInterval = setInterval(this.handleProgress, throttleRate)
 					}
 				},
-				err => { 
-					this.handleError(err)
-				},
-				() => this.handleFinishDownload()
+				this.handleError,
+				this.handleFinishDownload
 			)
 
 	}
@@ -107,6 +110,7 @@ function suDownloadItem(options) {
 
 	this.handleProgress = () => {
 		this.calculateStats()
+		console.log('\nHEYyeyaehath', this.stats.present.deltaDownloaded)		
 		this.emit('progress', this.stats)
 	}
 
@@ -194,6 +198,7 @@ function suDownloadItem(options) {
 
 	this.calculatePresentDownloaded = () => {
 		this.stats.present.downloaded = this.stats.total.downloaded - this.stats.past.downloaded
+		console.log('\nIM PRESENT DOWNLOADED', this.stats.present.downloaded)
 	}
 
 	this.calculatePresentTime = () => {
@@ -215,8 +220,13 @@ function suDownloadItem(options) {
 	//endregion
 
 	this.handleError = err => {
-		this.emit('error', err)
-		if(this.retried < this.options.retry) {
+		console.log(err,' HEYYYYYLOLOLOLOLOLOL')
+		if(this.retried == this.options.retry) {
+			this.emit('error', err)
+			return false
+		}
+		if(err.code == 'ENOTFOUND' || err.code == 'ECONNRESET') {
+			console.log('goT BAD CONNECTION RETYRING ', this.retried)
 			this.restart()
 			this.retried++
 		} else {
