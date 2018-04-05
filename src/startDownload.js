@@ -7,9 +7,6 @@ import { share } from 'rxjs/operators'
  * @param {string} sudFile - existing .sud file created with initiateDownload
  */
 export function startDownload(sudFile) {
-	/**
-	 * create file
-	 */
 	
 	const readMeta$ = readMeta(sudFile)
 	
