@@ -51,10 +51,10 @@ function suDownloadItem(options) {
 			eta: 0
 		}
 	}
-
+	
 	this.start = () => {
-		if(this.status == 'DOWNLOADING') return false
-		this.status = 'DOWNLOADING'
+		if(['DOWNLOADING', 'STARTING'].includes(this.status)) return false
+		this.status = 'STARTING'
 		let { sudPath, url, throttleRate, concurrent } = this.options
 		let dlPath = this.options.path
 		fs.access(sudPath, err => {

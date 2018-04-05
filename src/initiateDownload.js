@@ -9,10 +9,11 @@ import { share } from 'rxjs/operators'
  */
 export function initiateDownload(options) {
 	
+	//response object required to get filesize to split up the threads
 	const response$ = getResponse(options)
 	
 	const filesize$ = getFilesize(response$)
 
-	//creates meta to be appended to .sud file, contains path, sudPath, url, filesize and thread positions
+	//creates meta to be appended to .sud file, contains path, sudPath, url, filesize and threads
 	return createMetaInitial(filesize$, options).pipe(share())
 }

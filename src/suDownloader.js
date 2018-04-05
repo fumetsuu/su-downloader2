@@ -1,8 +1,6 @@
 const suDownloadItem = require('./suDownloadItem')
 const util = require('util')
 const EventEmitter = require('events').EventEmitter
-// import store from '../store.js'
-// import { convertSec } from '../util/util.js'
 
 /**
  * 
@@ -10,7 +8,7 @@ const EventEmitter = require('events').EventEmitter
  */
 function suDownloader() {
 	util.inherits(suDownloader, EventEmitter)
-	this.setMaxListeners(50)
+	this.setMaxListeners(100)
 
 	this.settings = {
 		maxConcurrentDownloads: 4,
@@ -30,24 +28,6 @@ function suDownloader() {
 	this.downloads = Object.assign({}, this.defaultDownloads)
 
 	const internals = {
-		// populateState: () => {
-		// 	var sudownloads = global.estore.get('sudownloads')
-		// 	if(sudownloads) {
-		// 		this.downloads = sudownloads
-		// 		if(sudownloads.activeDownloads.length) {
-		// 			this.downloads.activeDownloads = sudownloads.activeDownloads.map(el => {
-		// 				let downloadItem = new suDownloadItem(el.options)
-		// 				downloadItem.on('finish', data => internals.handleDownloadFinished(el.options.key, data))
-		// 				return downloadItem
-		// 			})
-		// 			this.downloads.downloadingNumberOfDownloads = this.downloads.activeDownloads.filter(el => el.status == 'DOWNLOADING').length
-		// 			if(this.settings.autoStart) {
-		// 				this .startQueue()
-		// 			}
-		// 		}
-		// 	}
-		// },
-
 		getQueueDownload: key => {
 			return this.downloads.queuedDownloads.find(el => el.key == key)
 		},
@@ -117,28 +97,9 @@ function suDownloader() {
 			downloadsItem.removeAllListeners('finish')
 			let downloadsIdx = internals.getActiveDownloadIndex(key)
 			this.downloads.activeDownloads.splice(downloadsIdx, 1)
-			// store.dispatch({
-			// 	type: 'COMPLETED_DOWNLOAD',
-			// 	payload: {
-			// 		animeFilename: key,
-			// 		persistedState: {
-			// 			status: 'COMPLETED',
-			// 			speed: '',
-			// 			progressSize: bytes(x.total.size),
-			// 			percentage: '100',
-			// 			remaining: '0',
-			// 			elapsed: convertSec(Math.round(x.present.time / 1000)),
-			// 			completeDate: Date.now()
-			// 		}
-			// 	}
-			// })
 			internals.calculateCurrentDownloads()
 			internals.downloadNextInQueue()
 		}
-	}
-
-	this.populateState = () => {
-		internals.populateState()
 	}
 	
 	/**
@@ -199,11 +160,9 @@ function suDownloader() {
 		this.downloads.queuedDownloads.splice(downloadQueueIndex, 1)
 		this.downloads.activeDownloads.push(downloadItem)
 		
-		this.emit('new_download_started', key)
-		
 		downloadItem.start()
+		this.emit('new_download_started', key)
 		downloadItem.on('finish', data => internals.handleDownloadFinished(key, data))
-		
 		
 		internals.calculateCurrentDownloads()
 	}
@@ -252,6 +211,7 @@ function suDownloader() {
 	this.resumeDownload = key => {
 		let downloadItem = internals.getActiveDownload(key)
 		downloadItem.start()
+		this.emit('new_download_started', key)		
 		internals.calculateCurrentDownloads()
 	}
 
@@ -272,14 +232,10 @@ function suDownloader() {
 				downloadItem.removeAllListeners('error')
 				downloadItem.removeAllListeners('finish')
 				downloadItem.pause()
-			}
-			if(deleteFile && downloadItem) {
-				downloadItem.clearAllFiles().then(() => internals.removeFromActive(key))
-			} else {
+				if(deleteFile) downloadItem.clearAllFiles()
 				internals.removeFromActive(key)
 			}
 		}
-		console.log(this)
 	}
 
 	this.clearAll = () => {
@@ -296,20 +252,6 @@ function suDownloader() {
 	this.getQueuedDownload = key => {
 		return internals.getQueueDownload(key)
 	}
-
-	// this.persistToDisk = () => {
-	// 	var bareDLs = []
-	// 	if(this.downloads.activeDownloads.length) {
-	// 		bareDLs = this.downloads.activeDownloads.map(el => {
-	// 			return {
-	// 				options: Object.assign({}, el.options, { status: 'PAUSED' }),
-	// 				stats: el.stats
-	// 			}
-	// 		})
-	// 	}
-	// 	global.estore.set('sudownloads', Object.assign({}, this.downloads, { activeDownloads: bareDLs }))
-	// }
-
 }
 
 module.exports = new suDownloader()

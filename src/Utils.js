@@ -6,7 +6,7 @@ import { Observable } from 'rxjs/Observable'
 import 'rxjs/add/observable/of'
 import 'rxjs/add/observable/throw'
 import 'rxjs/add/operator/finally'
-import { filter, pluck, take, share, tap, concatMap, combineAll, combineLatest, mergeAll, map, mergeMap, catchError } from 'rxjs/operators'
+import { filter, pluck, take, share, concatMap, combineAll, combineLatest, mergeAll, map, mergeMap, catchError } from 'rxjs/operators'
 /**
  * public util method to get .sud file
  * @param {string} filepath 
@@ -92,7 +92,6 @@ export function genMetaObservable(request$, readMeta$) {
 					partials.push(partialPath(basemeta.path, i))
 				}
 				concat(partials, basemeta.path, true, true).then(() => {
-					console.log('done rebuilding')
 					return Object.assign({}, basemeta, { positions, finished: true })
 				})
 				fs.unlinkSync(basemeta.sudPath)
@@ -172,7 +171,6 @@ function writeDataMetaBuffer(writeStream, request$, meta, threadIdx) {
 		})
 	).finally(() => {
 		writeStream.end()
-		console.log('FINALYLLY OL OLOLOLOLOLOLOLOOLOL')
 	})
 	return e$
 }
