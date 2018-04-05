@@ -1,7 +1,7 @@
 const fs = require('fs')
 const util = require('util')
 const EventEmitter = require('events').EventEmitter
-const suD = require('./')
+const suD = require('./downloadsIndex')
 
 function suDownloadItem(options) {
 	util.inherits(suDownloadItem, EventEmitter)
